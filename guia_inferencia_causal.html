@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guia Aprimorado de Inferência Causal</title>
+
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --paper: #ffffff;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --primary: #234c77;
+      --primary-2: #326ca6;
+      --accent: #14b8a6;
+      --warn: #f59e0b;
+      --danger: #e11d48;
+      --line: #d9e1ec;
+      --soft: #eef5ff;
+      --soft2: #ecfdf5;
+      --code: #0f172a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top left, #dbeafe 0, transparent 28rem), var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      line-height: 1.65;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 28px;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    aside {
+      position: sticky;
+      top: 20px;
+      height: calc(100vh - 40px);
+      overflow: auto;
+      background: rgba(255, 255, 255, .85);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: 0 20px 50px rgba(31, 41, 55, .08);
+    }
+
+    aside h2 {
+      font-size: 1rem;
+      margin: 0 0 14px;
+      color: var(--primary);
+    }
+
+    aside a {
+      display: block;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: .92rem;
+    }
+
+    aside a:hover {
+      background: var(--soft);
+      color: var(--primary);
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #123557, #225c8d 55%, #14b8a6);
+      color: white;
+      border-radius: 30px;
+      padding: 44px;
+      box-shadow: 0 30px 70px rgba(18, 53, 87, .22);
+      overflow: hidden;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      font-size: .8rem;
+      opacity: .85;
+      font-weight: 800;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 4.4rem);
+      line-height: 1.02;
+      margin: 12px 0 18px;
+    }
+
+    .hero p {
+      max-width: 980px;
+      font-size: 1.12rem;
+      opacity: .95;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .badge {
+      background: rgba(255, 255, 255, .16);
+      border: 1px solid rgba(255, 255, 255, .28);
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: .86rem;
+    }
+
+    section,
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      margin-top: 26px;
+      padding: 30px;
+      box-shadow: 0 18px 45px rgba(31, 41, 55, .06);
+    }
+
+    h2 {
+      color: var(--primary);
+      font-size: 1.85rem;
+      line-height: 1.2;
+      margin: 0 0 14px;
+    }
+
+    h3 {
+      color: #16395e;
+      margin-top: 28px;
+      font-size: 1.25rem;
+    }
+
+    h4 {
+      color: var(--primary-2);
+      margin-bottom: 4px;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 1.04rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .topic {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .topic strong {
+      color: var(--primary);
+    }
+
+    .callout {
+      border-left: 5px solid var(--accent);
+      background: var(--soft2);
+      padding: 16px 18px;
+      border-radius: 14px;
+      margin: 18px 0;
+    }
+
+    .warning {
+      border-left-color: var(--warn);
+      background: #fffbeb;
+    }
+
+    .danger {
+      border-left-color: var(--danger);
+      background: #fff1f2;
+    }
+
+    .formula,
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    .formula {
+      background: #f1f5f9;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      color: var(--code);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      overflow: hidden;
+      border-radius: 16px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--soft);
+      color: var(--primary);
+      text-align: left;
+    }
+
+    .exercise {
+      background: #fafafa;
+      border: 1px dashed #b7c4d6;
+      border-radius: 18px;
+      padding: 18px;
+      margin-top: 20px;
+    }
+
+    .exercise h4 {
+      margin-top: 0;
+    }
+
+    .answer {
+      background: white;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-top: 10px;
+      border: 1px solid var(--line);
+    }
+
+    details.answer summary {
+      cursor: pointer;
+      font-weight: 800;
+      color: var(--primary);
+      list-style: none;
+    }
+
+    details.answer summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details.answer summary::before {
+      content: "▶";
+      display: inline-block;
+      margin-right: 8px;
+      transition: transform .15s ease;
+    }
+
+    details.answer[open] summary::before {
+      transform: rotate(90deg);
+    }
+
+    .answer .step {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .latex-note {
+      font-size: .9rem;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .paper-tag {
+      display: inline-block;
+      background: var(--soft);
+      color: var(--primary);
+      border: 1px solid #cfe1f7;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: .82rem;
+      margin: 2px 4px 2px 0;
+    }
+
+    .checklist li {
+      margin-bottom: 8px;
+    }
+
+    .dag {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      white-space: pre;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 16px;
+      padding: 16px;
+      overflow-x: auto;
+    }
+
+    footer {
+      color: var(--muted);
+      text-align: center;
+      padding: 30px;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        display: block;
+        padding: 14px;
+      }
+
+      aside {
+        position: relative;
+        height: auto;
+        margin-bottom: 18px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      section,
+      .card {
+        padding: 22px;
+        border-radius: 20px;
+      }
+    }
+
+    @media print {
+      aside {
+        display: none;
+      }
+
+      .layout {
+        display: block;
+        padding: 0;
+      }
+
+      body {
+        background: white;
+      }
+
+      section,
+      .hero,
+      .card {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+
+      .hero {
+        color: #111;
+        background: white;
+        border: 2px solid #111;
+      }
+
+      a {
+        color: inherit;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout">
+    <aside>
+      <h2>Sumário navegável</h2>
+      <a href="#intro">Introdução</a>
+      <a href="#mapa">Mapa completo de tópicos</a>
+      <a href="#fundamentos">1. Resultados potenciais</a>
+      <a href="#identificacao">2. Identificação causal</a>
+      <a href="#exchangeability">3. Ignorabilidade e exchangeability</a>
+      <a href="#confusao">4. Confusão</a>
+      <a href="#dags">5. DAGs, backdoor e colisores</a>
+      <a href="#estimandos">6. ATE, ATT, ITT e LATE</a>
+      <a href="#iv">7. Variáveis instrumentais</a>
+      <a href="#sensibilidade">8. Sensibilidade e violações</a>
+      <a href="#espacial">9. Confundimento espacial</a>
+      <a href="#prova">Checklist de prova</a>
+      <a href="#indice">Índice remissivo por paper</a>
+    </aside>
+
+    <main>
+      <header class="hero" id="intro">
+        <div class="eyebrow">Material de estudo • Inferência causal</div>
+        <h1>Guia aprimorado de inferência causal para prova</h1>
+        <p>Versão expandida e reorganizada do documento-base: cobre explicitamente ignorabilidade,
+          exchangeability/intercambiabilidade, confusão, colisores e DAGs, além de resultados potenciais, SUTVA,
+          instrumentos, LATE, análise de sensibilidade e inferência causal espacial. Cada seção termina com exercícios
+          de treino.</p>
+        <div class="badges">
+          <span class="badge">Resultados potenciais</span><span class="badge">DAGs</span><span
+            class="badge">Colisores</span><span class="badge">Confusão</span><span class="badge">IV / LATE</span>
+        </div>
+      </header>
+
+      <section id="mapa">
+        <h2>Mapa completo de tópicos e subtópicos</h2>
+        <p class="lead">A prova provavelmente não deve cobrar apenas definições soltas. O ponto central é saber
+          transformar uma pergunta empírica em um problema causal: qual é o estimando, quais pressupostos identificam
+          esse estimando e quais variáveis devem ou não entrar no ajuste.</p>
+        <div class="grid">
+          <div class="topic"><strong>Fundamentos</strong><br />Resultados potenciais; contrafactuais; problema
+            fundamental da inferência causal; SUTVA; heterogeneidade; aleatorização; modelo de urnas de Neyman.</div>
+          <div class="topic"><strong>Identificação</strong><br />Diferença entre estimar e identificar; ATE, ATT, ITT,
+            LATE; mecanismos de atribuição; “so what?” layer: o que pode ser concluído causalmente?</div>
+          <div class="topic"><strong>Ignorabilidade e exchangeability</strong><br />Intercambiabilidade marginal e
+            condicional; independência entre tratamento e resultados potenciais; positividade; consistência.</div>
+          <div class="topic"><strong>Confusão</strong><br />Confounders comuns; viés por variável omitida; backdoor
+            paths; Simpson; diferença entre preditor de Y e confundidor causal.</div>
+          <div class="topic"><strong>DAGs</strong><br />Nós, setas, caminhos; chains, forks e colliders; d-separation;
+            regra do backdoor; ajuste adequado e ajuste indevido.</div>
+          <div class="topic"><strong>Instrumentos e extensões</strong><br />Variáveis instrumentais; restrição de
+            exclusão; monotonicidade; compliers; LATE; críticas ATE vs LATE; bounds; sensibilidade; espaço.</div>
+        </div>
+      </section>
+
+      <section id="fundamentos">
+        <h2>1. Fundação: resultados potenciais e o problema fundamental</h2>
+        <p>O framework de resultados potenciais pergunta: para cada unidade \(i\), qual seria o resultado se ela
+          recebesse tratamento e qual seria o resultado se ela não recebesse? Em notação binária, escrevemos \(Y_i(1)\)
+          e \(Y_i(0)\). O efeito causal individual seria:</p>
+        <div class="formula">\[\tau_i = Y_i(1) - Y_i(0)\]</div>
+        <p>O problema é que, para cada unidade, só observamos um desses dois resultados. Se a unidade recebe tratamento
+          \(D_i=1\), observamos \(Y_i(1)\); se não recebe, observamos \(Y_i(0)\). O outro valor é contrafactual.</p>
+        <div class="callout"><strong>Relação com Neyman (1923):</strong> o documento-base enfatiza a ruptura de Neyman
+          com a visão de erro de medição de Laplace. A variabilidade não é apenas ruído em torno de um parâmetro; ela
+          reflete heterogeneidade real entre unidades. A matriz de potenciais de Neyman é uma forma inicial e poderosa
+          de visualizar que apenas uma célula por unidade é observada.</div>
+        <h3>SUTVA</h3>
+        <p>SUTVA significa <em>Stable Unit Treatment Value Assumption</em>. Ela reúne duas ideias: não há interferência
+          entre unidades e não há versões múltiplas relevantes do tratamento. Sem isso, escrever simplesmente \(Y_i(1)\)
+          e \(Y_i(0)\) pode ser enganoso, porque o resultado de uma pessoa poderia depender do tratamento recebido por
+          outras pessoas.</p>
+        <div class="formula">\[Y_i^{obs} = D_iY_i(1) + (1-D_i)Y_i(0)\]</div>
+        <h3>ATE, ATT e heterogeneidade</h3>
+        <p>Como o efeito individual é normalmente inobservável, a inferência causal se volta para efeitos médios. O ATE
+          é o efeito médio na população. O ATT é o efeito médio entre os tratados. Em populações heterogêneas, ATE e ATT
+          podem ser muito diferentes.</p>
+        <div class="formula">\[ATE = E[Y(1)-Y(0)]\]\[ATT = E[Y(1)-Y(0)\mid D=1]\]</div>
+        <div class="exercise">
+          <h4>Exercícios</h4>
+          <ol>
+            <li>Explique por que não conseguimos observar \(Y_i(1)\) e \(Y_i(0)\) para a mesma unidade no mesmo momento.
+            </li>
+            <li>Uma política pública tem efeito forte em pessoas pobres e efeito nulo em pessoas ricas. O ATE e o ATT
+              serão iguais? Depende de quê?</li>
+            <li>Dê um exemplo de violação de SUTVA por interferência.</li>
+          </ol>
+          <details class="answer">
+            <summary>Ver gabarito completo</summary>
+            <div class="step"><strong>1.</strong> Não observamos simultaneamente \(Y_i(1)\) e \(Y_i(0)\) porque, no
+              mundo factual, a unidade \(i\) só pode estar em um dos estados de tratamento em um mesmo momento. Se ela
+              recebeu tratamento, o observado é \(Y_i^{obs}=Y_i(1)\); se não recebeu, o observado é
+              \(Y_i^{obs}=Y_i(0)\). O outro resultado é contrafactual: ele é conceitualmente bem definido, mas não
+              aparece nos dados. Esse é o problema fundamental da inferência causal.</div>
+            <div class="step"><strong>2.</strong> ATE e ATT não precisam ser iguais. O \(ATE=E[Y(1)-Y(0)]\) é a média do
+              efeito em toda a população; o \(ATT=E[Y(1)-Y(0)\mid D=1]\) é a média do efeito apenas entre quem de fato
+              recebeu tratamento. Se a política tem efeito forte em pessoas pobres e nulo em pessoas ricas, o ATT será
+              maior que o ATE se os tratados forem majoritariamente pobres; será menor ou mais próximo de zero se os
+              tratados forem majoritariamente ricos. Eles só coincidem em casos especiais: efeito homogêneo, tratados
+              representativos da população, ou composição ponderada equivalente.</div>
+            <div class="step"><strong>3.</strong> Uma violação de SUTVA por interferência ocorre quando o tratamento de
+              uma unidade afeta o resultado de outra. Em vacinação, minha chance de adoecer depende não apenas de eu ter
+              sido vacinado, mas também de quantas pessoas ao meu redor foram vacinadas. Em educação, o desempenho de um
+              aluno pode depender da intervenção recebida pelos colegas, por mudanças no ambiente da sala. Em marketing,
+              uma campanha enviada a alguns usuários pode afetar usuários não tratados por conversa, redes sociais ou
+              indicação.</div>
+          </details>
+        </div>
+      </section>
+
+      <section id="identificacao">
+        <h2>2. Identificação causal: o que dá para aprender dos dados?</h2>
+        <p>Identificação é diferente de estimação. Estimação pergunta como calcular algo com uma amostra finita.
+          Identificação pergunta se, mesmo com dados infinitos, o parâmetro causal desejado poderia ser recuperado da
+          distribuição observada.</p>
+        <div class="callout warning"><strong>Frase de prova:</strong> sem pressupostos causais, associação observada não
+          identifica efeito causal. O dado sozinho mostra \(E[Y\mid D=1]-E[Y\mid D=0]\); o efeito causal exige comparar
+          potenciais.</div>
+        <p>A diferença observada pode ser decomposta como efeito causal mais viés de seleção:</p>
+        <div class="formula">\[E[Y\mid D=1] - E[Y\mid D=0] = E[Y(1)\mid D=1] - E[Y(0)\mid D=0]\]</div>
+        <p>Para virar ATE ou ATT, precisamos substituir termos contrafactuais, como \(E[Y(0)\mid D=1]\). Isso exige
+          pressupostos como aleatorização, ignorabilidade, instrumento válido ou algum outro desenho causal.</p>
+        <h3>Consistência, positividade e ignorabilidade</h3>
+        <p>O trio básico em muitos desenhos observacionais é: consistência, positividade e ignorabilidade. Consistência
+          conecta o resultado observado ao potencial correspondente. Positividade exige que todos os perfis relevantes
+          tenham chance positiva de receber e não receber tratamento. Ignorabilidade diz que, condicionando nas
+          covariáveis certas, a atribuição do tratamento é “como se” aleatória.</p>
+        <div class="exercise">
+          <h4>Exercícios</h4>
+          <ol>
+            <li>Qual é a diferença entre identificar e estimar?</li>
+            <li>Por que “ter muitos dados” não resolve confusão não medida?</li>
+            <li>Explique positividade usando um exemplo de política de bolsa de estudos.</li>
+          </ol>
+          <details class="answer">
+            <summary>Ver gabarito completo</summary>
+            <div class="step"><strong>1.</strong> Identificação é uma questão conceitual: pergunta se o estimando causal
+              pode ser escrito em termos da distribuição observável dos dados, assumindo certos pressupostos. Estimação
+              é uma questão estatística/prática: uma vez que o parâmetro está identificado, como calculá-lo com uma
+              amostra finita, com erro-padrão, incerteza e possíveis escolhas de modelo. Um efeito pode estar não
+              identificado mesmo com uma amostra infinita.</div>
+            <div class="step"><strong>2.</strong> Muitos dados reduzem variância, mas não removem viés causal. Se
+              pessoas tratadas e não tratadas diferem por um confundidor não observado, a diferença \(E[Y\mid
+              D=1]-E[Y\mid D=0]\) converge para a associação populacional enviesada, não para o efeito causal. Com dados
+              infinitos, você mede com enorme precisão a quantidade errada.</div>
+            <div class="step"><strong>3.</strong> Positividade exige que, dentro de cada perfil de covariáveis
+              relevante, exista probabilidade positiva de receber e de não receber tratamento. Em uma bolsa de estudos,
+              suponha que todos os alunos com renda familiar abaixo de certo limite sempre recebam bolsa e todos acima
+              nunca recebam. Nesse caso, dentro do grupo de renda muito baixa não há controles comparáveis; dentro do
+              grupo de renda alta não há tratados. Fica impossível separar efeito da bolsa de diferenças estruturais
+              entre os grupos sem extrapolação forte.</div>
+          </details>
+        </div>
+      </section>
+
+      <section id="exchangeability">
+        <h2>3. Ignorabilidade e exchangeability/intercambiabilidade</h2>
+        <p>Exchangeability significa que os grupos tratados e não tratados são comparáveis em termos de resultados
+          potenciais. Em um experimento perfeitamente randomizado, antes do tratamento, os grupos são intercambiáveis: a
+          distribuição de \(Y(0)\) e \(Y(1)\) seria a mesma nos dois grupos.</p>
+        <div class="formula">Exchangeability marginal:\[\{Y(1),Y(0)\} \perp\!\!\!\perp D\]</div>
+        <p>Em estudos observacionais, isso raramente vale sem ajuste. A versão mais importante é a exchangeability
+          condicional:</p>
+        <div class="formula">Exchangeability condicional:\[\{Y(1),Y(0)\} \perp\!\!\!\perp D \mid X\]</div>
+        <p>Ignorabilidade é uma formulação muito próxima: a atribuição de tratamento é independente dos potenciais,
+          condicional às covariáveis observadas. A intuição é que, dentro de cada estrato de \(X\), o tratamento pode
+          ser tratado como se tivesse sido sorteado.</p>
+        <div class="callout"><strong>Relação com Rosenbaum & Rubin (1983):</strong> o propensity score nasce como uma
+          ferramenta para reduzir a dimensionalidade do ajuste sob ignorabilidade. Em vez de ajustar diretamente por
+          muitas covariáveis, pode-se ajustar pelo escore de propensão \(e(X)=P(D=1\mid X)\), desde que os pressupostos
+          causais estejam corretos.</div>
+        <h3>O erro comum</h3>
+        <p>Não basta colocar “todas as variáveis disponíveis” no modelo. Algumas variáveis devem ser ajustadas, outras
+          não. Ajustar para um mediador bloqueia parte do efeito total; ajustar para um colisor pode criar associação
+          espúria.</p>
+        <div class="exercise">
+          <h4>Exercícios</h4>
+          <ol>
+            <li>Defina exchangeability em uma frase.</li>
+            <li>Explique a diferença entre exchangeability marginal e condicional.</li>
+            <li>Por que propensity score não salva um estudo com confundidores não observados?</li>
+          </ol>
+          <details class="answer">
+            <summary>Ver gabarito completo</summary>
+            <div class="step"><strong>1.</strong> Exchangeability significa que, em termos de resultados potenciais, os
+              grupos tratados e não tratados poderiam ser trocados: a distribuição de \(Y(1)\) e \(Y(0)\) não depende do
+              status de tratamento. Formalmente, na versão marginal: \(\{Y(1),Y(0)\}\perp\!\!\!\perp D\). A intuição é
+              que o grupo controle representa adequadamente o contrafactual do grupo tratado.</div>
+            <div class="step"><strong>2.</strong> Exchangeability marginal vale sem condicionar em nada, como em um
+              experimento randomizado bem executado. Exchangeability condicional vale após controlar por covariáveis:
+              \(\{Y(1),Y(0)\}\perp\!\!\!\perp D\mid X\). Em estudos observacionais, a esperança é que, dentro de
+              estratos de \(X\), a decisão de tratamento seja “como se” aleatória. Isso exige que \(X\) contenha os
+              confundidores relevantes, não apenas variáveis convenientes.</div>
+            <div class="step"><strong>3.</strong> Propensity score não resolve confundimento não observado porque ele só
+              resume as covariáveis observadas usadas para estimar \(e(X)=P(D=1\mid X)\). Se uma variável importante
+              afeta \(D\) e \(Y\), mas não está em \(X\), o escore de propensão não consegue equilibrá-la. Ele é uma
+              ferramenta de ajuste sob ignorabilidade, não uma prova de ignorabilidade.</div>
+          </details>
+        </div>
+      </section>
+
+      <section id="confusao">
+        <h2>4. Confusão: o inimigo central da interpretação causal</h2>
+        <p>Confusão ocorre quando uma causa comum influencia tanto o tratamento quanto o resultado. O problema não é
+          simplesmente a variável estar correlacionada com \(Y\); ela precisa estar ligada causalmente ao tratamento e
+          ao resultado de modo a abrir um caminho não causal entre eles.</p>
+        <div class="dag">Z → D → Y
+          Z ─────→ Y</div>
+        <p>Nesse DAG, \(Z\) é confundidor da relação entre \(D\) e \(Y\). Se não ajustarmos por \(Z\), parte da
+          associação entre \(D\) e \(Y\) pode refletir diferenças prévias entre os grupos, não efeito do tratamento.</p>
+        <h3>Paradoxo de Simpson</h3>
+        <p>O paradoxo de Simpson aparece quando uma associação agregada muda de direção após estratificação por uma
+          variável relevante. Em causalidade, ele é uma pista de que a comparação bruta pode estar misturando grupos com
+          composições diferentes.</p>
+        <div class="callout"><strong>Relação com DAGs e Stanford Encyclopedia:</strong> a discussão sobre Simpson fica
+          mais clara quando traduzida para grafos. A pergunta correta deixa de ser “qual tabela está certa?” e vira
+          “qual estrutura causal justifica condicionar ou não condicionar?”.</div>
+        <div class="exercise">
+          <h4>Exercícios</h4>
+          <ol>
+            <li>Dê um exemplo de confundidor entre atividade física e saúde.</li>
+            <li>Por que idade pode ser confundidor em muitos estudos médicos?</li>
+            <li>Uma variável muito preditiva de \(Y\) sempre deve ser ajustada? Justifique.</li>
+          </ol>
+          <details class="answer">
+            <summary>Ver gabarito completo</summary>
+            <div class="step"><strong>1.</strong> Um possível confundidor entre atividade física e saúde é saúde prévia.
+              Pessoas inicialmente mais saudáveis podem ter mais disposição para se exercitar e, independentemente do
+              exercício, também tenderiam a ter melhores desfechos futuros. Renda também pode confundir: pessoas com
+              renda maior podem ter mais acesso a academias, alimentação melhor e atendimento médico. Nesse caso, parte
+              da associação entre exercício e saúde pode ser consequência dessas diferenças prévias.</div>
+            <div class="step"><strong>2.</strong> Idade é confundidor em muitos estudos médicos porque influencia tanto
+              a probabilidade de receber certos tratamentos quanto o risco de vários desfechos. Pessoas mais velhas
+              podem ter maior chance de receber medicação, exames ou intervenções, e também maior risco basal de
+              mortalidade, internação ou complicações. Se não ajustarmos por idade, podemos atribuir ao tratamento uma
+              diferença que já existia antes dele.</div>
+            <div class="step"><strong>3.</strong> Não. Uma variável ser muito preditiva de \(Y\) não implica que ela
+              deva ser ajustada. Se for confundidor pré-tratamento, geralmente sim. Mas se for mediador, ajustar
+              bloqueia parte do efeito total. Se for colisor, ajustar pode abrir um caminho espúrio. A regra não é
+              “ajuste por tudo que prediz \(Y\)”; a regra é usar um modelo causal, como um DAG, para decidir quais
+              caminhos precisam ser bloqueados.</div>
+          </details>
+        </div>
+      </section>
+
+      <section id="dags">
+        <h2>5. DAGs, backdoor paths e colisores</h2>
+        <p>DAGs são grafos direcionados acíclicos. Eles representam pressupostos causais: setas indicam relações causais
+          diretas assumidas; ausência de seta também é uma afirmação. O valor dos DAGs é tornar explícito quando devemos
+          ajustar, quando não devemos e que caminhos estão abertos.</p>
+        <h3>Três estruturas básicas</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Estrutura</th>
+              <th>Forma</th>
+              <th>Regra de ajuste</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Chain</td>
+              <td>\(D \rightarrow M \rightarrow Y\)</td>
+              <td>Condicionar em <code>M</code> bloqueia o caminho. Se quiser efeito total de D em Y, normalmente não
+                ajuste por mediador.</td>
+            </tr>
+            <tr>
+              <td>Fork / confusão</td>
+              <td><code>D ← Z → Y</code></td>
+              <td>Condicionar em \(Z\) bloqueia o caminho de backdoor.</td>
+            </tr>
+            <tr>
+              <td>Collider / colisor</td>
+              <td>\(D \rightarrow C \leftarrow Y\)</td>
+              <td>Não condicione em <code>C</code>. Condicionar abre um caminho espúrio.</td>
+            </tr>
+          </tbody>
+        </table>
+        <h3>Colisores</h3>
+        <p>Um colisor é uma variável que recebe setas de duas causas. A regra contraintuitiva é: caminhos que passam por
+          colisores estão naturalmente fechados, mas são abertos quando condicionamos no colisor ou em descendentes
+          dele.</p>
+        <div class="dag">D → C ← U → Y
+
+          Sem condicionar em C: caminho D ... Y fechado.
+          Condicionando em C: caminho D ↔ U → Y aberto artificialmente.</div>
+        <p>Exemplo intuitivo: seleção em uma amostra. Imagine que habilidade e sorte aumentam chance de entrar em uma
+          universidade muito seletiva. Dentro da universidade, habilidade e sorte podem parecer negativamente
+          associadas, porque quem entrou com pouca sorte precisou de muita habilidade, e vice-versa. A seleção funciona
+          como colisor.</p>
+        <h3>Critério backdoor</h3>
+        <p>Para identificar o efeito de \(D\) em \(Y\), precisamos bloquear todos os caminhos que entram em \(D\) por
+          trás, sem bloquear caminhos causais legítimos e sem abrir caminhos por colisores.</p>
+        <div class="exercise">
+          <h4>Exercícios</h4>
+          <ol>
+            <li>No DAG \(X \rightarrow D \rightarrow Y\) e \(X \rightarrow Y\), devo ajustar por \(X\)?</li>
+            <li>No DAG \(D \rightarrow M \rightarrow Y\), devo ajustar por <code>M</code> para estimar efeito total?
+            </li>
+            <li>No DAG \(D \rightarrow C \leftarrow Y\), o que acontece se eu filtrar apenas observações com \(C=1\)?
+            </li>
+          </ol>
+          <details class="answer">
+            <summary>Ver gabarito completo</summary>
+            <div class="step"><strong>1.</strong> Sim. No DAG \(X
+              ightarrow D
+              ightarrow Y\) e \(X
+              ightarrow Y\), existe um caminho de backdoor \(D\leftarrow X
+              ightarrow Y\). Esse caminho gera associação não causal entre \(D\) e \(Y\). Ajustar por \(X\) bloqueia
+              esse caminho e permite comparar tratados e controles dentro de níveis semelhantes de \(X\), assumindo que
+              não há outros backdoors abertos.</div>
+            <div class="step"><strong>2.</strong> Para estimar o efeito total de \(D\) sobre \(Y\), não devemos ajustar
+              por \(M\) em \(D
+              ightarrow M
+              ightarrow Y\), porque \(M\) é mediador: ele é parte do mecanismo pelo qual \(D\) afeta \(Y\). Ajustar por
+              \(M\) remove a parcela do efeito que passa por \(M\). Só faria sentido ajustar por \(M\) se a pergunta
+              fosse sobre efeito direto de \(D\) que não passa por \(M\), e mesmo assim seriam necessários pressupostos
+              adicionais.</div>
+            <div class="step"><strong>3.</strong> Em \(D
+              ightarrow C\leftarrow Y\), \(C\) é um colisor. Sem condicionar, o caminho entre \(D\) e \(Y\) fica
+              bloqueado em \(C\). Ao filtrar apenas observações com \(C=1\), ou ao controlar por \(C\), abrimos esse
+              caminho e criamos associação espúria entre \(D\) e \(Y\). Isso é viés de seleção/colisor: dentro da
+              amostra selecionada, causas independentes de seleção podem parecer relacionadas.</div>
+          </details>
+        </div>
+      </section>
+
+      <section id="estimandos">
+        <h2>6. Estimandos: ATE, ATT, ITT e LATE</h2>
+        <p>Um erro comum é falar “o efeito causal” como se houvesse apenas um. Em prova, vale sempre perguntar: efeito
+          de quê, em quem, sob qual intervenção?</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Estimando</th>
+              <th>Definição</th>
+              <th>Quando aparece</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ATE</td>
+              <td>\(E[Y(1)-Y(0)]\)</td>
+              <td>Efeito médio na população inteira.</td>
+            </tr>
+            <tr>
+              <td>ATT</td>
+              <td>\(E[Y(1)-Y(0)\mid D=1]\)</td>
+              <td>Efeito médio nos tratados.</td>
+            </tr>
+            <tr>
+              <td>ITT</td>
+              <td>Efeito de ser designado ao tratamento.</td>
+              <td>Experimentos com não-compliance; políticas de oferta.</td>
+            </tr>
+            <tr>
+              <td>LATE</td>
+              <td>Efeito médio para compliers.</td>
+              <td>Variáveis instrumentais com monotonicidade.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout"><strong>Relação com Robins & Greenland:</strong> a crítica ao LATE é que ele pode
+          identificar um efeito local em um subgrupo não observável individualmente. Isso não o torna inútil; significa
+          que sua interpretação deve ser cuidadosa.</div>
+        <div class="exercise">
+          <h4>Exercícios</h4>
+          <ol>
+            <li>Em um experimento de e-mail promocional, alguns usuários sorteados não abrem o e-mail. ITT mede o quê?
+            </li>
+            <li>Por que LATE pode ser diferente de ATE?</li>
+            <li>Em uma política pública, qual estimando você escolheria para avaliar “efeito da oferta” versus “efeito
+              de receber de fato”?</li>
+          </ol>
+          <details class="answer">
+            <summary>Ver gabarito completo</summary>
+            <div class="step"><strong>1.</strong> ITT mede o efeito de ser designado/ofertado ao tratamento, não
+              necessariamente o efeito de receber ou consumir o tratamento. No exemplo do e-mail promocional, o ITT
+              compara todos os usuários sorteados para receber o e-mail contra todos os não sorteados, independentemente
+              de terem aberto. Ele responde à pergunta operacional: “qual é o efeito de disparar/oferecer essa
+              campanha?”.</div>
+            <div class="step"><strong>2.</strong> LATE pode diferir de ATE porque se refere apenas aos compliers:
+              pessoas cujo tratamento muda por causa do instrumento ou da designação. Se os efeitos são heterogêneos, o
+              efeito nesses indivíduos pode ser maior ou menor que o efeito médio na população inteira. Por exemplo,
+              usuários que só compram quando recebem cupom podem ter sensibilidade promocional diferente dos
+              always-takers e never-takers.</div>
+            <div class="step"><strong>3.</strong> Para avaliar o efeito da oferta, use ITT: compara quem recebeu a
+              oportunidade com quem não recebeu. Para avaliar o efeito de receber de fato quando há não-compliance, uma
+              estratégia de IV pode identificar LATE: o efeito entre os compliers induzidos pela oferta. Para falar do
+              efeito na população inteira, seria ATE, mas ele exige pressupostos mais fortes ou outro desenho que
+              identifique esse parâmetro.</div>
+          </details>
+        </div>
+      </section>
+
+      <section id="iv">
+        <h2>7. Variáveis instrumentais e o framework LATE</h2>
+        <p>Variáveis instrumentais são usadas quando o tratamento recebido \(D\) é potencialmente confundido, mas existe
+          uma variável \(Z\) que afeta a chance de receber tratamento e, sob pressupostos fortes, não afeta o resultado
+          exceto por meio do tratamento.</p>
+        <div class="dag">Z → D → Y
+          U → D
+          U → Y
+
+          Z não deve ter seta direta para Y e não deve estar ligado a U.</div>
+        <h3>Pressupostos típicos</h3>
+        <ol class="checklist">
+          <li><strong>Relevância:</strong> o instrumento altera a probabilidade de tratamento.</li>
+          <li><strong>Independência:</strong> o instrumento é “como se” randomizado em relação aos potenciais.</li>
+          <li><strong>Restrição de exclusão:</strong> o instrumento só afeta o resultado via tratamento.</li>
+          <li><strong>Monotonicidade:</strong> não há defiers; o instrumento não faz algumas pessoas irem
+            sistematicamente no sentido oposto.</li>
+          <li><strong>SUTVA:</strong> sem interferência relevante e sem versões múltiplas problemáticas.</li>
+        </ol>
+        <h3>Tipos de unidades</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>D(0)</th>
+              <th>D(1)</th>
+              <th>Interpretação</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Never-takers</td>
+              <td>0</td>
+              <td>0</td>
+              <td>Nunca tomam tratamento.</td>
+            </tr>
+            <tr>
+              <td>Compliers</td>
+              <td>0</td>
+              <td>1</td>
+              <td>Tomam tratamento se incentivados/designados.</td>
+            </tr>
+            <tr>
+              <td>Always-takers</td>
+              <td>1</td>
+              <td>1</td>
+              <td>Sempre tomam tratamento.</td>
+            </tr>
+            <tr>
+              <td>Defiers</td>
+              <td>1</td>
+              <td>0</td>
+              <td>Fazem o oposto da designação; excluídos por monotonicidade.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="formula">\[LATE = \frac{ITT_Y}{ITT_D} = \frac{E[Y\mid Z=1]-E[Y\mid Z=0]}{E[D\mid Z=1]-E[D\mid
+          Z=0]}\]</div>
+        <div class="callout"><strong>Relação com Angrist, Imbens & Rubin (1996):</strong> o documento-base destaca a
+          formalização do LATE no contexto de complacência imperfeita. O ponto é que o instrumento identifica o efeito
+          para os compliers, não automaticamente para toda a população.</div>
+        <div class="exercise">
+          <h4>Exercícios</h4>
+          <ol>
+            <li>Explique restrição de exclusão usando o exemplo de sorteio de vaga escolar.</li>
+            <li>Se \(Z\) não altera \(D\), qual pressuposto falha?</li>
+            <li>Calcule o LATE se \(ITT_Y=4\) e \(ITT_D=0{,}5\).</li>
+          </ol>
+          <details class="answer">
+            <summary>Ver gabarito completo</summary>
+            <div class="step"><strong>1.</strong> No exemplo de sorteio de vaga escolar, a restrição de exclusão diz que
+              ganhar o sorteio \(Z\) só pode afetar o desempenho \(Y\) por meio de frequentar a escola \(D\). Se ganhar
+              o sorteio também muda motivação dos pais, acesso a redes, expectativas dos professores ou outros recursos
+              mesmo sem a criança frequentar a escola, a exclusão falha. O instrumento teria um caminho direto ou
+              alternativo para \(Y\).</div>
+            <div class="step"><strong>2.</strong> Se \(Z\) não altera \(D\), falha a relevância do instrumento. Um
+              instrumento precisa causar variação no tratamento; caso contrário, ele não gera a comparação necessária
+              entre pessoas induzidas e não induzidas. Matematicamente, o denominador \(E[D\mid Z=1]-E[D\mid Z=0]\)
+              seria zero ou muito próximo de zero, tornando o estimador impossível ou instável.</div>
+            <div class="step"><strong>3.</strong> O cálculo é direto: \(LATE=ITT_Y/ITT_D=4/0{,}5=8\). A interpretação é:
+              entre os compliers — aqueles cujo recebimento do tratamento mudou por causa do instrumento — o efeito
+              médio estimado do tratamento sobre \(Y\) é 8 unidades. Não é automaticamente o ATE da população inteira.
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section id="sensibilidade">
+        <h2>8. Análise de sensibilidade, bounds e violações</h2>
+        <p>Como muitos pressupostos causais são impossíveis de verificar diretamente nos dados, uma boa análise causal
+          deve perguntar: quão forte teria que ser uma violação para mudar a conclusão?</p>
+        <p>Análise de sensibilidade investiga robustez a confundimento não medido, violação da exclusão em IV, presença
+          de defiers, seleção de amostra, erro de medição e positividade fraca.</p>
+        <div class="callout"><strong>Relação com Balke & Pearl:</strong> bounds aparecem quando os pressupostos não
+          bastam para identificar pontualmente o efeito. Em vez de um único número, obtemos um intervalo compatível com
+          os dados e os pressupostos mantidos.</div>
+        <h3>Violação de positividade</h3>
+        <p>Mesmo com ignorabilidade, se certos grupos quase nunca recebem tratamento ou quase nunca ficam no controle,
+          as comparações dependem de extrapolação. Isso torna o estimador instável e a interpretação menos crível.</p>
+        <div class="exercise">
+          <h4>Exercícios</h4>
+          <ol>
+            <li>O que significa dizer que um efeito é “parcialmente identificado”?</li>
+            <li>Dê um exemplo de violação da restrição de exclusão.</li>
+            <li>Por que overlap ruim aumenta dependência de modelagem?</li>
+          </ol>
+          <details class="answer">
+            <summary>Ver gabarito completo</summary>
+            <div class="step"><strong>1.</strong> Um efeito é parcialmente identificado quando os dados e os
+              pressupostos disponíveis não determinam um único valor para o parâmetro causal, mas restringem os valores
+              possíveis a um conjunto ou intervalo. Em vez de dizer “o efeito é 3”, a análise pode concluir “o efeito
+              está entre 1 e 5”, dadas as hipóteses mantidas. Bounds são úteis quando não queremos impor pressupostos
+              fortes demais.</div>
+            <div class="step"><strong>2.</strong> A restrição de exclusão em IV falha quando o instrumento afeta o
+              resultado por outro caminho além do tratamento. Exemplo: usar distância até hospital como instrumento para
+              receber tratamento. A distância pode afetar mortalidade não só por alterar tratamento, mas também por
+              atrasar atendimento emergencial, refletir infraestrutura local ou capturar diferenças urbanas/rurais.
+              Nesse caso, \(Z\) tem outros caminhos para \(Y\).</div>
+            <div class="step"><strong>3.</strong> Overlap ruim significa que certos perfis têm probabilidade quase zero
+              ou quase um de tratamento. Nesses casos, não há comparação real entre tratados e controles similares. O
+              estimador passa a depender fortemente da forma funcional do modelo, extrapolando o que aconteceria em
+              regiões dos dados onde não observamos os dois estados de tratamento. Isso aumenta instabilidade e reduz
+              credibilidade causal.</div>
+          </details>
+        </div>
+      </section>
+
+      <section id="espacial">
+        <h2>9. Confundimento espacial e ajuste espectral</h2>
+        <p>Em dados espaciais, unidades próximas tendem a compartilhar características não observadas. Isso pode violar
+          exchangeability: áreas tratadas e não tratadas podem diferir por fatores geográficos, socioeconômicos,
+          ambientais ou históricos.</p>
+        <div class="dag">Localização / espaço → D
+          Localização / espaço → Y</div>
+        <p>O confundimento espacial é uma forma de confusão em que a variável comum é uma estrutura espacial latente.
+          Ajustes espaciais tentam capturar padrões suaves ou dependências geográficas para reduzir viés.</p>
+        <div class="callout"><strong>Relação com Reich, Yang & Guan:</strong> o documento-base menciona inferência
+          causal espacial e ajuste espectral. A ideia geral é usar representações da estrutura espacial para ajustar
+          padrões de confundimento que não aparecem como uma covariável simples.</div>
+        <div class="exercise">
+          <h4>Exercícios</h4>
+          <ol>
+            <li>Por que comparar municípios tratados e não tratados pode ser enviesado?</li>
+            <li>Dê um exemplo de confundidor espacial latente.</li>
+            <li>Qual é o risco de ajustar demais por componentes espaciais?</li>
+          </ol>
+          <details class="answer">
+            <summary>Ver gabarito completo</summary>
+            <div class="step"><strong>1.</strong> Comparar municípios tratados e não tratados pode ser enviesado porque
+              a decisão de tratamento pode estar espacialmente concentrada. Municípios tratados podem estar em regiões
+              mais ricas, mais urbanizadas, com melhor infraestrutura, clima diferente ou histórico político específico.
+              Se essas características também afetam o resultado, a comparação bruta mistura efeito do tratamento com
+              diferenças espaciais pré-existentes.</div>
+            <div class="step"><strong>2.</strong> Um confundidor espacial latente é uma característica geográfica ou
+              regional não medida que influencia tratamento e desfecho. Exemplos: qualidade do solo em estudos
+              agrícolas, acesso histórico a infraestrutura pública, proximidade de centros econômicos, clima, altitude,
+              padrões regionais de renda, cultura local ou capacidade administrativa municipal. Mesmo sem uma variável
+              observada explícita, a estrutura espacial pode carregar essa informação.</div>
+            <div class="step"><strong>3.</strong> O risco de ajustar demais por componentes espaciais é remover variação
+              que faz parte do próprio tratamento ou do mecanismo causal. Se o tratamento é definido espacialmente — por
+              exemplo, uma política aplicada a uma região inteira — controles espaciais muito flexíveis podem absorver
+              quase toda a variação relevante, levando a estimativas atenuadas ou difíceis de interpretar. O ajuste
+              precisa bloquear confundimento, não apagar a intervenção.</div>
+          </details>
+        </div>
+      </section>
+
+      <section id="prova">
+        <h2>Checklist de prova: como responder questões de inferência causal</h2>
+        <ol class="checklist">
+          <li><strong>Defina o estimando:</strong> ATE, ATT, ITT, LATE, efeito total ou direto?</li>
+          <li><strong>Declare os potenciais:</strong> quais são \(Y(1)\) e \(Y(0)\)?</li>
+          <li><strong>Explique o contrafactual ausente:</strong> qual termo não observamos?</li>
+          <li><strong>Liste pressupostos:</strong> SUTVA, consistência, positividade, ignorabilidade, exclusão,
+            monotonicidade etc.</li>
+          <li><strong>Desenhe o DAG:</strong> identifique backdoors, mediadores e colisores.</li>
+          <li><strong>Escolha o ajuste:</strong> diga o que ajustar e o que não ajustar.</li>
+          <li><strong>Interprete com humildade:</strong> o resultado depende de quais pressupostos substantivos?</li>
+        </ol>
+      </section>
+
+      <section id="indice">
+        <h2>Índice remissivo por paper / fonte</h2>
+        <p class="lead">Este índice organiza os papers mencionados no documento-base e os conecta aos tópicos mais
+          prováveis de prova.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Paper / fonte</th>
+              <th>Assuntos conectados</th>
+              <th>Onde aparece neste guia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Neyman (1923)</td>
+              <td>Resultados potenciais; matriz de potenciais; heterogeneidade; aleatorização; variância conservadora.
+              </td>
+              <td><span class="paper-tag">Fundamentos</span><span class="paper-tag">Identificação</span></td>
+            </tr>
+            <tr>
+              <td>Rosenbaum & Rubin (1983)</td>
+              <td>Ignorabilidade; propensity score; balanceamento; redução de dimensionalidade sob seleção observável.
+              </td>
+              <td><span class="paper-tag">Exchangeability</span><span class="paper-tag">Confusão</span></td>
+            </tr>
+            <tr>
+              <td>Imbens & Angrist (1994)</td>
+              <td>LATE; monotonicidade; interpretação local de instrumentos.</td>
+              <td><span class="paper-tag">Estimandos</span><span class="paper-tag">IV</span></td>
+            </tr>
+            <tr>
+              <td>Angrist, Imbens & Rubin (1996)</td>
+              <td>Variáveis instrumentais; non-compliance; compliers; exclusion restriction; SUTVA formal.</td>
+              <td><span class="paper-tag">IV</span><span class="paper-tag">LATE</span></td>
+            </tr>
+            <tr>
+              <td>Robins & Greenland (1996)</td>
+              <td>Críticas ao LATE; ATE como alvo de política; interpretação populacional versus local.</td>
+              <td><span class="paper-tag">Estimandos</span><span class="paper-tag">Sensibilidade</span></td>
+            </tr>
+            <tr>
+              <td>Balke & Pearl (1993)</td>
+              <td>Bounds; identificação não-paramétrica; limites de identificação sob pressupostos mais fracos.</td>
+              <td><span class="paper-tag">Sensibilidade</span><span class="paper-tag">Bounds</span></td>
+            </tr>
+            <tr>
+              <td>Stanford Encyclopedia / material sobre Simpson</td>
+              <td>Paradoxo de Simpson; DAGs; confusão; interpretação de agregação versus estratificação.</td>
+              <td><span class="paper-tag">Confusão</span><span class="paper-tag">DAGs</span></td>
+            </tr>
+            <tr>
+              <td>Reich, Yang & Guan</td>
+              <td>Inferência causal espacial; confundimento espacial; ajuste espectral.</td>
+              <td><span class="paper-tag">Espacial</span><span class="paper-tag">Sensibilidade</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer>Guia produzido a partir do documento-base do NotebookLM, com reorganização, expansão didática, exercícios
+        e melhoria visual.</footer>
+    </main>
+  </div>
+</body>
+
+</html>
